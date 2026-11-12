@@ -122,6 +122,57 @@ The User Service handles everything about users.
 
 **Who uses it:** the Order Service calls `GET /users/{id}` to check that a user exists before saving an order.
 
+**Status:** ✅ Done (Week 9)
+
+---
+
+## 📦 Product Service in detail
+
+The Product Service handles everything about the shop's products.
+
+**What it can do:**
+
+- **Add** a new product (name, price, stock)
+- **List** all products
+- **Show** one product by id
+- **Update** a product (for example change the price)
+- **Delete** a product
+- **Health check** at `/health` and **metrics** at `/metrics`
+
+**Why MongoDB?**
+
+- Products can have different details (size, color, brand…), and MongoDB stores flexible data easily
+- Using a different database from the other services shows **polyglot persistence**
+
+**Who uses it:** the Order Service calls `GET /products/{id}` to check that a product exists and to get its price.
+
+**Status:** 🔄 In progress (Saheedat)
+
+---
+
+## 🧾 Order Service in detail
+
+The Order Service lets a user buy a product. It is the service that **connects the other two**.
+
+**What it can do:**
+
+- **Place an order** (user id, product id, quantity)
+- **Show** one order by id
+- **List** all orders of a user
+- **Health check** at `/health` and **metrics** at `/metrics`
+
+**How it works:**
+
+1. It receives a new order.
+2. It asks the **User Service**: "does this user exist?"
+3. It asks the **Product Service**: "does this product exist, and what is its price?"
+4. If both answers are yes, it calculates the total (price × quantity) and saves the order.
+5. If not, it returns an error (`404` user or product not found).
+
+**Why it matters:** this service shows **communication between microservices** and **service discovery**.
+
+**Status:** 🔄 In progress (Victor)
+
 ---
 
 ## 🧰 Tools we use (and why)
@@ -193,90 +244,209 @@ Install these once on your laptop. Keep the default options during setup.
 
 ---
 
+## 🚀 How to run the project (step by step)
+
+There are **two ways** to run the User Service. Both do the same thing, so pick one:
+
+| Way | When to use it | Needs |
+|---|---|---|
+| **A. With Python** (Steps 3, 4 and 5) | Quick test while you write code | Python only |
+| **B. With Docker** (Step 6) | Run it the "real" way, like in production | Docker Desktop |
+
+Start with **Way A**. It is easier.
+
+---
+
 ## 📥 Step 2 – Get the code
+
+**What this step does:** downloads the project from GitHub to your laptop, so you have all the files.
+
+Open a terminal (in VS Code: **Terminal → New Terminal**) and type:
 
 ```
 git clone https://github.com/mahaaltuhfi/shoplite.git
 cd shoplite
 ```
 
+| Command | What it means |
+|---|---|
+| `git clone ...` | Copy the whole project from GitHub to your laptop |
+| `cd shoplite` | Go inside the project folder (`cd` = "change directory") |
+
+✅ **You know it worked when** you see a `shoplite` folder with `user-service` inside it.
+
 ---
 
-## ▶️ Step 3 – Run the User Service with Python
+## ▶️ Step 3 – Start the User Service (with Python)
 
-This is the quickest way to try the service. It uses a small local database file (SQLite), so you **don't need PostgreSQL or Docker** for this step.
+**What this step does:** turns on the User Service on your laptop, so it can receive requests (like a small website that only answers in data).
 
-Open the terminal in VS Code (**Terminal → New Terminal**) and run:
+> You **don't need a database or Docker** for this step. The service makes a small local database file by itself (`users.db`).
+
+**3.1 – Go into the service folder and install what it needs:**
 
 ```
 cd user-service
 py -m pip install -r requirements-dev.txt
+```
+
+| Command | What it means |
+|---|---|
+| `cd user-service` | Go inside the User Service folder |
+| `py -m pip install -r requirements-dev.txt` | Install all the Python libraries listed in the file (Flask, pytest…). You only do this **once**. |
+
+**3.2 – Start the service:**
+
+```
 py app.py
 ```
 
+This runs the file `app.py`, which is the User Service.
+
+✅ **You know it worked when** you see:
+
+```
+Running on http://127.0.0.1:5001
+```
+
+That means the service is **on** and waiting at port **5001**.
+⚠️ **Don't close this terminal.** If you close it, the service turns off.
+
 > 💡 On Mac/Linux use `python3` instead of `py`.
-
-You should see: `Running on http://127.0.0.1:5001`. **Leave this terminal open.**
-
-Now open a **second terminal** (click the **+** in the terminal panel) and try it:
-
-```
-# Check the service is alive
-Invoke-RestMethod http://localhost:5001/health
-
-# Register a user
-Invoke-RestMethod -Method Post -Uri http://localhost:5001/users -ContentType "application/json" -Body '{"name":"Maha","email":"maha@test.com","password":"123"}'
-
-# Get user number 1
-Invoke-RestMethod http://localhost:5001/users/1
-```
-
-To stop the service, go back to the first terminal and press **Ctrl + C**.
 
 ---
 
-## ✅ Step 4 – Run the tests
+## 🧪 Step 4 – Try the service (send it requests)
 
-Tests are small programs that **check our code works automatically**. They use a temporary in-memory database, so they never touch real data.
+**What this step does:** we "talk" to the service to check it really works: create a user, then read it back.
+
+**4.1 – The easiest check: use your browser**
+
+Open your browser and go to:
 
 ```
-cd user-service
+http://localhost:5001/health
+```
+
+✅ You should see: `{"status": "ok"}` → the service is alive.
+
+**4.2 – Create and read a user (in a second terminal)**
+
+The browser can only **read** data. To **create** a user we need to **send** data, so we use the terminal.
+
+Open a **second terminal** (click the **+** in the terminal panel; the first one is still running the service) and type:
+
+**Create a user:**
+
+```
+Invoke-RestMethod -Method Post -Uri http://localhost:5001/users -ContentType "application/json" -Body '{"name":"Maha","email":"maha@test.com","password":"123"}'
+```
+
+| Part | What it means |
+|---|---|
+| `Invoke-RestMethod` | Windows command that sends a request to an API |
+| `-Method Post` | `POST` = "create something new" |
+| `-Uri http://localhost:5001/users` | The address: the User Service, the `/users` endpoint |
+| `-ContentType "application/json"` | We are sending data in JSON format |
+| `-Body '{...}'` | The data: the new user's name, email and password |
+
+✅ You should see the new user with `id 1`.
+
+**Read the user back:**
+
+```
+Invoke-RestMethod http://localhost:5001/users/1
+```
+
+This asks: "give me the user with id 1". ✅ You should see Maha's name and email (but **not** the password).
+
+> 💡 **Easier option:** use **Postman** (an app with buttons) to send the same requests without typing commands.
+
+**4.3 – Stop the service**
+
+Go back to the **first terminal** and press **Ctrl + C**.
+
+---
+
+## ✅ Step 5 – Run the automatic tests
+
+**What this step does:** instead of checking everything by hand like in Step 4, **tests check the code for us** in 2 seconds. We run them every time we change the code, to make sure nothing is broken.
+
+In the terminal (inside the `user-service` folder):
+
+```
 py -m pytest -v
 ```
 
-Expected result: **8 passed**
+| Part | What it means |
+|---|---|
+| `pytest` | The testing tool |
+| `-v` | "verbose" = show each test's name and result |
+
+✅ **You know it worked when** you see: **8 passed** (green).
+❌ If you see **failed** (red), something in the code is broken. The message tells you which test and why.
+
+**What our 8 tests check:**
 
 | Test | What it checks |
 |---|---|
-| `test_health` | The `/health` endpoint answers "ok" |
+| `test_health` | The service answers "ok" |
 | `test_register_user` | A new user can register, and the password is **never** returned |
-| `test_register_missing_fields` | Registering without a name/email/password is rejected (400) |
+| `test_register_missing_fields` | Registering with missing data is rejected (400) |
 | `test_register_duplicate_email` | The same email cannot register twice (409) |
 | `test_login_success` | Correct email + password gives a token |
 | `test_login_wrong_password` | Wrong password is rejected (401) |
 | `test_get_user` | We can read a user's profile |
 | `test_get_missing_user` | A user that doesn't exist gives 404 |
 
+> The tests use a **temporary database in memory**, so they never touch real data.
+
 ---
 
-## 🐳 Step 5 – Run everything with Docker Compose
+## 🐳 Step 6 – Run with Docker (the "real" way)
 
-This runs the service **the real way**: inside a container, with a real **PostgreSQL** database.
+**What this step does:** runs the User Service **inside a container**, together with a **real PostgreSQL database**, all with one command. This is how it will run on Kubernetes later.
 
-1. **Start Docker Desktop** and wait until it says *"Engine running"*.
-2. In the `shoplite` folder, create your settings file from the example: `copy .env.example .env` *(Mac/Linux: `cp .env.example .env`)*. Then open `.env` and change the passwords if you want.
-3. Build and start everything: `docker compose up --build`
-4. Test it the same way as in Step 3 (`http://localhost:5001/health`).
-5. To stop: press **Ctrl + C**, then run `docker compose down`
+**Why Docker?** On your laptop the service works because you installed Python and the libraries. On another computer it might not. Docker puts the service **and everything it needs** in a box (container), so it runs the same **everywhere**.
 
-### What happens behind the scenes
+**6.1 – Open Docker Desktop** and wait until it says **"Engine running"**.
 
-1. Docker reads `docker-compose.yml`.
-2. It starts **`user-db`** (PostgreSQL) and waits until it is healthy.
-3. It builds the **`user-service`** image using the `Dockerfile`.
-4. It starts the service and connects it to the database by name (`user-db`).
+**6.2 – Create your settings file** (in the main `shoplite` folder):
 
-### Why our Dockerfile follows best practices
+```
+copy .env.example .env
+```
+
+This makes a copy of the example settings file called `.env`. It holds the database username and password. You can change the passwords inside it.
+*(Mac/Linux: `cp .env.example .env`)*
+
+**6.3 – Start everything:**
+
+```
+docker compose up --build
+```
+
+| Part | What it means |
+|---|---|
+| `docker compose` | Use the `docker-compose.yml` file, which lists our containers |
+| `up` | Start them |
+| `--build` | Build the User Service image first from its `Dockerfile` |
+
+**What happens behind the scenes:**
+
+1. Docker starts a **PostgreSQL database** container (`user-db`).
+2. Docker builds the **User Service** image using the `Dockerfile`.
+3. Docker starts the User Service and connects it to the database **by name**.
+
+✅ **You know it worked when** `http://localhost:5001/health` shows `{"status": "ok"}` in your browser, just like in Step 4.
+
+**6.4 – Stop everything:** press **Ctrl + C**, then run:
+
+```
+docker compose down
+```
+
+**Why our Dockerfile follows best practices:**
 
 | Practice | What it means |
 |---|---|
@@ -286,13 +456,13 @@ This runs the service **the real way**: inside a container, with a real **Postgr
 | **Passwords in environment variables** | No passwords inside the code or the image |
 | **`/health` endpoint** | Docker and Kubernetes can check if the service is alive |
 
-Useful Docker commands:
+**Useful Docker commands:**
 
-```
-docker compose ps                  # list running containers
-docker compose logs user-service   # see the service's logs
-docker compose down -v             # stop and also delete the database data
-```
+| Command | What it does |
+|---|---|
+| `docker compose ps` | Show which containers are running |
+| `docker compose logs user-service` | Show the service's messages (useful when something breaks) |
+| `docker compose down -v` | Stop everything and also delete the database data |
 
 ---
 

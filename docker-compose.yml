@@ -1,0 +1,58 @@
+# ShopLite - run everything locally with:  docker compose up --build
+# Owner: Maha Al-Tuhfi
+services:
+  user-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_USER: ${USER_DB_USER}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USER_DB_USER} -d users"]
+      interval: 5s
+      retries: 10
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "5001:5001"
+    environment:
+      DATABASE_URL: postgresql://${USER_DB_USER}:${USER_DB_PASSWORD}@user-db:5432/users
+      SECRET_KEY: ${JWT_SECRET}
+    depends_on:
+      user-db:
+        condition: service_healthy
+
+  # ---- Saheedat: uncomment when Product Service is ready ----
+  # product-db:
+  #   image: mongo:7
+  #   volumes:
+  #     - product-db-data:/data/db
+  # product-service:
+  #   build: ./product-service
+  #   ports: ["5002:5002"]
+  #   environment:
+  #     MONGO_URL: mongodb://product-db:27017/products
+  #   depends_on: [product-db]
+
+  # ---- Victor: uncomment when Order Service is ready ----
+  # order-db:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_DB: orders
+  #     POSTGRES_USER: ${ORDER_DB_USER}
+  #     POSTGRES_PASSWORD: ${ORDER_DB_PASSWORD}
+  # order-service:
+  #   build: ./order-service
+  #   ports: ["5003:5003"]
+  #   environment:
+  #     DATABASE_URL: postgresql://${ORDER_DB_USER}:${ORDER_DB_PASSWORD}@order-db:5432/orders
+  #     USER_SERVICE_URL: http://user-service:5001
+  #     PRODUCT_SERVICE_URL: http://product-service:5002
+  #   depends_on: [order-db, user-service, product-service]
+
+volumes:
+  user-db-data:
+  # product-db-data:

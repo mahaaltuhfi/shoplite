@@ -3,8 +3,6 @@
 ShopLite is a **small online shop** built with **microservices**.
 It is our final project for the Automation course. We build it step by step: first the services, then Docker, then Kubernetes, then testing, CI/CD and monitoring.
 
-> 👋 **New here?** This README is written for beginners. Read it from top to bottom and you will understand what the project is, which tools we use, and how to run everything on your own laptop.
-
 ---
 
 ## 👥 Team
@@ -91,6 +89,41 @@ sequenceDiagram
 
 ---
 
+## 🧱 Project parts
+
+The project is built in 4 parts:
+
+| Part | What we build | What it shows |
+|---|---|---|
+| **1. Microservices + Docker** | 3 services, each with its own database and REST API, each in a Docker container | Modular design, APIs, containers |
+| **2. Kubernetes** | Run all services on a local cluster (Minikube), with auto-scaling and security rules | Deployment, scaling, service discovery |
+| **3. Testing, CI/CD, Monitoring** | Automatic tests, a pipeline that tests and deploys on every push, dashboards and logs | Reliability, automation, observability |
+| **4. Final presentation** | Live demo of the whole system | Architecture, deployment, lessons learned |
+
+---
+
+## 👤 User Service in detail
+
+The User Service handles everything about users.
+
+**What it can do:**
+
+- **Register** a new user (name, email, password)
+- **Log in** and get a token (a "digital ticket" that proves who you are)
+- **Show a user's profile** by id
+- **Health check** at `/health`, so Docker and Kubernetes know it is alive
+- **Metrics** at `/metrics`, so Prometheus can watch it
+
+**How it keeps data safe:**
+
+- Passwords are **hashed** before saving, so nobody can read them
+- The password is **never** sent back in any answer
+- The same email **cannot** register twice
+
+**Who uses it:** the Order Service calls `GET /users/{id}` to check that a user exists before saving an order.
+
+---
+
 ## 🧰 Tools we use (and why)
 
 | Tool | What it is (simple words) | Why we use it |
@@ -103,7 +136,7 @@ sequenceDiagram
 | **pytest** | A testing tool for Python | Runs our automatic tests |
 | **Postman** | An app to send requests to an API | Try our endpoints by clicking buttons |
 | **Git + GitHub** | Git saves versions of our code; GitHub stores it online | Teamwork and history of changes |
-| **VS Code** | A code editor | Write code, use the terminal, push to GitHub |
+| **VS Code** | A code editor | Write code and run commands |
 | **Docker** | Packs an app and everything it needs into a **container** | "It works on my laptop" becomes "it works everywhere" |
 | **Docker Compose** | Starts many containers with one command | Runs all services and databases together |
 | **Kubernetes (Minikube)** | Runs and manages containers, restarts them if they crash, scales them | Required by the project; Minikube runs it on a laptop |
@@ -158,23 +191,9 @@ Install these once on your laptop. Keep the default options during setup.
 | kubectl *(Week 10)* | https://kubernetes.io/docs/tasks/tools | `kubectl version --client` |
 | Helm *(Week 11)* | https://helm.sh/docs/intro/install | `helm version` |
 
-**First time using Git?** Tell Git who you are (use your GitHub email):
-
-```
-git config --global user.name "Your Name"
-git config --global user.email "your-email@example.com"
-```
-
 ---
 
 ## 📥 Step 2 – Get the code
-
-1. Accept the invitation to the repository (check your email).
-2. Open VS Code → press **Ctrl + Shift + P** → type **Git: Clone** → paste:
-   `https://github.com/mahaaltuhfi/shoplite.git`
-3. Choose a folder (for example *Documents*) and click **Open** when it asks.
-
-Or with the terminal:
 
 ```
 git clone https://github.com/mahaaltuhfi/shoplite.git
@@ -245,20 +264,10 @@ Expected result: **8 passed**
 This runs the service **the real way**: inside a container, with a real **PostgreSQL** database.
 
 1. **Start Docker Desktop** and wait until it says *"Engine running"*.
-2. In the `shoplite` folder, create your settings file from the example:
-   ```
-   copy .env.example .env
-   ```
-   *(Mac/Linux: `cp .env.example .env`)* – then open `.env` and change the passwords if you want.
-3. Build and start everything:
-   ```
-   docker compose up --build
-   ```
+2. In the `shoplite` folder, create your settings file from the example: `copy .env.example .env` *(Mac/Linux: `cp .env.example .env`)*. Then open `.env` and change the passwords if you want.
+3. Build and start everything: `docker compose up --build`
 4. Test it the same way as in Step 3 (`http://localhost:5001/health`).
-5. To stop: press **Ctrl + C**, then run:
-   ```
-   docker compose down
-   ```
+5. To stop: press **Ctrl + C**, then run `docker compose down`
 
 ### What happens behind the scenes
 
@@ -357,36 +366,6 @@ We **never** write passwords in the code. They live in a file called `.env`, whi
 
 ---
 
-## 🤝 How we work together with Git
-
-**Golden rule:** never work directly on `main`. Each person works on their **own branch**, then opens a **Pull Request**.
-
-### Every time you start working
-
-```
-git checkout main
-git pull                                   # get the latest code from the team
-git checkout -b saheedat/product-service   # create your branch (first time only)
-```
-
-### After you change something
-
-```
-git add .
-git commit -m "Add GET /products endpoint"
-git push -u origin saheedat/product-service
-```
-
-Then on GitHub click **"Compare & pull request"** → another team member reviews → **Merge**.
-
-**In VS Code (no commands):** Source Control icon → type a message → **✓ Commit** → **Sync Changes**. Change branch by clicking the branch name (bottom-left corner).
-
-### Good commit messages
-
-✅ `Add login endpoint` ✅ `Fix 404 when user not found` ❌ `update` ❌ `asdf`
-
----
-
 ## 🗺️ Project roadmap (Weeks 9–12)
 
 ### Week 9 – Part 1: Services + Docker
@@ -419,21 +398,18 @@ Then on GitHub click **"Compare & pull request"** → another team member review
 
 ---
 
-## 🛠️ Troubleshooting (common problems)
+## 🧗 Challenges we faced (and how we fixed them)
 
-| Problem | Solution |
-|---|---|
-| `py` is not recognized | Reinstall Python and tick **"Add Python to PATH"** |
-| pytest says **"collected 0 items"** | `tests/test_app.py` is empty or not saved – open it, paste the code, press **Ctrl + S** |
-| Yellow warning *"Import could not be resolved"* in VS Code | Only a hint. Press **Ctrl + Shift + P → Python: Select Interpreter** and choose the Python you installed |
-| `Address already in use` / port 5001 busy | The service is already running in another terminal – stop it with **Ctrl + C** |
-| Docker: *"cannot connect to the Docker daemon"* | Open **Docker Desktop** and wait until it is running |
-| Docker Compose: password / variable is blank | You forgot to create `.env` → run `copy .env.example .env` |
-| A white dot ● on a VS Code tab | The file is **not saved** → press **Ctrl + S** |
-| Git push rejected | Someone pushed before you → run `git pull` first, then push again |
+We add to this list every week. It helps the team and our final presentation.
 
-**Rule #1 when something breaks: read the logs.**
-`docker compose logs user-service` (Docker) or `kubectl logs <pod-name>` (Kubernetes).
+| Week | Who | Problem | How we fixed it |
+|---|---|---|---|
+| 9 | Maha | pytest said **"collected 0 items"** | The test file was created but empty. Pasted the code and saved it (Ctrl + S). |
+| 9 | Maha | VS Code showed yellow **"Import could not be resolved"** warnings | VS Code was using a different Python. Not a real error; the code and tests still ran. |
+| 9 | Maha | VS Code: **"Cannot launch terminal in an untrusted workspace"** | Opened the project folder and clicked **"Yes, I trust the authors"**. |
+| 9 | Maha | README showed as one long paragraph on GitHub | Copied the preview instead of the raw text, so the heading and table symbols were lost. Pasted the raw Markdown. |
+
+**Tip:** when something breaks, read the logs first: `docker compose logs user-service` (Docker) or `kubectl logs <pod-name>` (Kubernetes).
 
 ---
 

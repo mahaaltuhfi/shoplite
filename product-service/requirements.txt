@@ -1,0 +1,5 @@
+flask
+pymongo
+prometheus-flask-exporter
+pytest
+mongomock

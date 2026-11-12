@@ -122,7 +122,6 @@ The User Service handles everything about users.
 
 **Who uses it:** the Order Service calls `GET /users/{id}` to check that a user exists before saving an order.
 
-**Status:** ✅ Done (Week 9)
 
 ---
 
@@ -312,7 +311,6 @@ Running on http://127.0.0.1:5001
 That means the service is **on** and waiting at port **5001**.
 ⚠️ **Don't close this terminal.** If you close it, the service turns off.
 
-> 💡 On Mac/Linux use `python3` instead of `py`.
 
 ---
 
@@ -575,9 +573,8 @@ We add to this list every week. It helps the team and our final presentation.
 | Week | Who | Problem | How we fixed it |
 |---|---|---|---|
 | 9 | Maha | pytest said **"collected 0 items"** | The test file was created but empty. Pasted the code and saved it (Ctrl + S). |
-| 9 | Maha | VS Code showed yellow **"Import could not be resolved"** warnings | VS Code was using a different Python. Not a real error; the code and tests still ran. |
-| 9 | Maha | VS Code: **"Cannot launch terminal in an untrusted workspace"** | Opened the project folder and clicked **"Yes, I trust the authors"**. |
-| 9 | Maha | README showed as one long paragraph on GitHub | Copied the preview instead of the raw text, so the heading and table symbols were lost. Pasted the raw Markdown. |
+
+
 
 **Tip:** when something breaks, read the logs first: `docker compose logs user-service` (Docker) or `kubectl logs <pod-name>` (Kubernetes).
 

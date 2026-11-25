@@ -9,9 +9,11 @@ app = Flask(__name__)
 metrics = PrometheusMetrics(app)  # adds /metrics for Prometheus
 
 # Database settings come from environment variables
+# MONGO_URL is used by docker compose, the other values are a fallback
+MONGO_URL = os.getenv("MONGO_URL")
 MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
 MONGO_PORT = int(os.getenv("MONGO_PORT", "27017"))
-MONGO_DB = os.getenv("MONGO_DB", "productdb")
+MONGO_DB = os.getenv("MONGO_DB", "products")
 MONGO_USER = os.getenv("MONGO_USER")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
 PORT = int(os.getenv("PORT", "5002"))
@@ -20,7 +22,9 @@ PORT = int(os.getenv("PORT", "5002"))
 def get_collection():
     # tests replace this client with a fake one
     if not hasattr(app, "mongo_client"):
-        if MONGO_USER and MONGO_PASSWORD:
+        if MONGO_URL:
+            uri = MONGO_URL
+        elif MONGO_USER and MONGO_PASSWORD:
             uri = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/"
         else:
             uri = f"mongodb://{MONGO_HOST}:{MONGO_PORT}/"

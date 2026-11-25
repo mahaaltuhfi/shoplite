@@ -25,17 +25,17 @@ services:
       user-db:
         condition: service_healthy
 
-  # ---- Saheedat: uncomment when Product Service is ready ----
-  # product-db:
-  #   image: mongo:7
-  #   volumes:
-  #     - product-db-data:/data/db
-  # product-service:
-  #   build: ./product-service
-  #   ports: ["5002:5002"]
-  #   environment:
-  #     MONGO_URL: mongodb://product-db:27017/products
-  #   depends_on: [product-db]
+  # ---- Saheedat: Product Service ----
+  product-db:
+    image: mongo:7
+    volumes:
+      - product-db-data:/data/db
+  product-service:
+    build: ./product-service
+    ports: ["5002:5002"]
+    environment:
+      MONGO_URL: mongodb://product-db:27017/products
+    depends_on: [product-db]
 
   # ---- Victor: uncomment when Order Service is ready ----
   # order-db:
@@ -55,4 +55,4 @@ services:
 
 volumes:
   user-db-data:
-  # product-db-data:
+  product-db-data:
